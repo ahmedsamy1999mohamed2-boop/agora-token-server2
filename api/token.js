@@ -1,7 +1,6 @@
 const { RtcTokenBuilder, RtcRole } = require('agora-access-token');
 
 module.exports = (req, res) => {
-    // السماح بالاتصال من أي مكان (CORS)
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
 
@@ -25,7 +24,6 @@ module.exports = (req, res) => {
     const currentTimestamp = Math.floor(Date.now() / 1000);
     const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
 
-    // توليد التوكن
     const token = RtcTokenBuilder.buildTokenWithUid(
         appId,
         appCertificate,
