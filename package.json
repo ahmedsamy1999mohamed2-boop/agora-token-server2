@@ -5,27 +5,4 @@
   "dependencies": {
     "agora-access-token": "^2.0.4"
   }
-}{
-  "name": "agora-token-server",
-  "version": "1.0.0",
-  "description": "Agora token server on Vercel",
-  "dependencies": {
-    "agora-access-token": "^2.0.4"
-  }
-}{
-  "name": "agoratokenserver",
-  "version": "1.0.0",
-  "description": "",
-  "main": "api/index.js",
-  "scripts": {
-    "start": "node api/index.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "agora-token": "^2.0.5",
-    "express": "^5.2.1"
-  }
 }
