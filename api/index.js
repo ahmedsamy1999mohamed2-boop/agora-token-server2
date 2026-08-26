@@ -1,42 +1,48 @@
-const express = require('express');
-const { RtcTokenBuilder, RtcRole } = require('agora-token');
+const { RtcTokenBuilder, RtcRole } = require('agora-access-token');
 
-const app = express();
-app.use(express.json());
+module.exports = (req, res) => {
+    // السماح بالاتصال من أي مكان (CORS)
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
 
-// مسار فحص حالة السيرفر للتأكد إنه شغال
-app.get('/api', (req, res) => {
-    res.json({ status: "Agora Token Server is online 24/7 on Vercel! 🚀" });
-});
+    const appId = process.env.APP_ID;
+    const appCertificate = process.env.APP_CERTIFICATE;
 
-// مسار توليد التوكن
-app.get('/api/token', (req, res) => {
-  const APP_ID = "0ce08c94ee6644fd8e406f2f794df809"; const APP_CERTIFICATE = "2d3c4224d9dc43a6886eaa26619a063d"; 
-    
-    const channelName = req.query.channel;
-    if (!channelName) {
-        return res.status(400).json({ error: 'channel name is required' });
+    // قراءة الرابط والمسارات بشكل دقيق
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const path = url.pathname;
+
+    // لو الطلب رايح للـ token
+    if (path.includes('/token')) {
+        const channelName = url.searchParams.get('channel');
+        
+        if (!channelName) {
+            return res.status(400).json({ error: 'Channel name is required!' });
+        }
+
+        if (!appId || !appCertificate) {
+            return res.status(500).json({ error: 'App ID or Certificate missing in environment variables!' });
+        }
+
+        const uid = 0;
+        const role = RtcRole.PUBLISHER;
+        const expirationTimeInSeconds = 3600;
+        const currentTimestamp = Math.floor(Date.now() / 1000);
+        const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
+
+        // توليد التوكن
+        const token = RtcTokenBuilder.buildTokenWithUid(
+            appId,
+            appCertificate,
+            channelName,
+            uid,
+            role,
+            privilegeExpiredTs
+        );
+
+        return res.status(200).json({ token: token });
     }
 
-    const uid = 0;
-    const role = RtcRole.PUBLISHER;
-    const expirationTimeInSeconds = 3600;
-    const currentTimestamp = Math.floor(Date.now() / 1000);
-    const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
-
-    // استخدام مكتبة agora-token لتوليد التوكن
-    const token = RtcTokenBuilder.buildTokenWithUid(
-        APP_ID,
-        APP_CERTIFICATE,
-        channelName,
-        uid,
-        role,
-        expirationTimeInSeconds,
-        privilegeExpiredTs
-    );
-
-    return res.json({ token });
-});
-
-// تصدير التطبيق ليعمل بنجاح على Vercel Serverless
-module.exports = app;
+    // الرد الافتراضي لو فتحت الرابط العام
+    return res.status(200).json({ status: "Agora Token Server is online 24/7 on Vercel! 🚀" });
+};
