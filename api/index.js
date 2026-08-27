@@ -1,4 +1,4 @@
-const { RtcTokenBuilder, RtcRole } = require('agora-access-token');
+const { RtcTokenBuilder, RtcRole } = require('agora-token');
 
 module.exports = (req, res) => {
     // السماح بالاتصال من أي مكان (CORS)
@@ -8,11 +8,9 @@ module.exports = (req, res) => {
     const appId = process.env.APP_ID;
     const appCertificate = process.env.APP_CERTIFICATE;
 
-    // قراءة الرابط والمسارات بشكل دقيق
     const url = new URL(req.url, `http://${req.headers.host}`);
     const path = url.pathname;
 
-    // لو الطلب رايح للـ token
     if (path.includes('/token')) {
         const channelName = url.searchParams.get('channel');
         
@@ -26,23 +24,21 @@ module.exports = (req, res) => {
 
         const uid = 0;
         const role = RtcRole.PUBLISHER;
-        const expirationTimeInSeconds = 3600;
-        const currentTimestamp = Math.floor(Date.now() / 1000);
-        const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
+        const privilegeExpireTime = 3600; // مدة الصلاحية بالثواني (ساعة)
 
-        // توليد التوكن
+        // توليد التوكن الحديث المتوافق مع Agora SDK v4.x
         const token = RtcTokenBuilder.buildTokenWithUid(
             appId,
             appCertificate,
             channelName,
             uid,
             role,
-            privilegeExpiredTs
+            privilegeExpireTime,
+            privilegeExpireTime
         );
 
         return res.status(200).json({ token: token });
     }
 
-    // الرد الافتراضي لو فتحت الرابط العام
     return res.status(200).json({ status: "Agora Token Server is online 24/7 on Vercel! 🚀" });
 };
